@@ -1,0 +1,6 @@
+{
+  "SERVER_HOST": "chard.yoshpan.com",
+  "SERVER_NS": "ns.chard.yoshpan.com",
+  "SERVER_PUBKEY": "e1f0e9a42618b7c54f673390cd729bbf4c98b90d83e8be196c40eab66b4b4a27",
+  "EXPIRY_DAYS": 5
+}
