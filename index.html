@@ -675,22 +675,6 @@ async function doV2Ray(){
   finally{ setLoad('vless', false); }
 }
 
-/* ─── ADMIN ─────────────────────────────────────────── */
-    list.innerHTML = d.passwords.map(function(p){
-      return '<div class="pw-item">'
-        +'<span class="pw-val">'+esc(p.password)+'</span>'
-        +'<span class="pw-status '+(p.inUse?'used':'free')+'">'+(p.inUse?'IN USE':'FREE')+'</span>'
-        +'<span class="pw-actions">'
-        +(p.inUse?'<button class="btn-pw-reset" onclick="resetPW(\''+esc(p.password)+'\')" title="Reset">↺</button>':'')
-        +'<button class="btn-pw-del" onclick="deletePW(\''+esc(p.password)+'\')" title="Delete">🗑</button>'
-        +'</span></div>';
-    }).join('');
-  } catch(e){}
-}
-}
-}
-}
-
 /* ─── ACCOUNTS TABLE ────────────────────────────────── */
 function openAccounts(){ document.getElementById('accounts-panel').classList.add('show'); loadAccounts(); }
 function closeAccounts(){ document.getElementById('accounts-panel').classList.remove('show'); }
