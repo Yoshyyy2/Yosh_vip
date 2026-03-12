@@ -36,9 +36,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--ui);min-height:100
 .page{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:0 16px 100px;min-height:100vh}
 
 /* TOP BUTTONS */
-#admin-btn,#logout-btn{position:fixed;top:16px;z-index:200;padding:8px 18px;border-radius:100px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:1px;cursor:pointer;display:none;transition:all .2s;backdrop-filter:blur(12px)}
-#admin-btn{left:16px;background:rgba(61,111,255,.1);border:1px solid rgba(61,111,255,.25);color:var(--blue2)}
-#admin-btn:hover{background:rgba(61,111,255,.2);border-color:rgba(61,111,255,.5)}
+#logout-btn{position:fixed;top:16px;right:16px;z-index:200;padding:8px 18px;border-radius:100px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:1px;cursor:pointer;display:none;transition:all .2s;backdrop-filter:blur(12px);background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.2);color:var(--red)}
+#logout-btn:hover{background:rgba(255,64,96,.15);border-color:rgba(255,64,96,.4)}
 #logout-btn{right:16px;background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.2);color:var(--red)}
 #logout-btn:hover{background:rgba(255,64,96,.15);border-color:rgba(255,64,96,.4)}
 
@@ -199,28 +198,6 @@ footer{margin-top:56px;text-align:center;font-family:var(--mono);font-size:10px;
 @keyframes fadeUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
 /* ADMIN */
-#admin-panel{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px}
-#admin-panel.show{display:flex}
-.admin-box{background:linear-gradient(160deg,var(--card),var(--s2));border:1px solid var(--border2);border-radius:20px;padding:28px 26px;width:100%;max-width:420px;max-height:82vh;overflow-y:auto}
-.admin-title{font-size:13px;font-weight:700;color:var(--white);letter-spacing:1px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono)}
-.admin-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0;line-height:1;transition:color .2s}
-.admin-close:hover{color:var(--red)}
-.gen-row{display:flex;gap:8px;margin-bottom:16px}
-.gen-input{flex:1;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--rs);color:var(--white);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s}
-.gen-input:focus{border-color:var(--cyan)}
-.btn-gen{padding:11px 18px;background:linear-gradient(135deg,var(--blue),var(--cyan));border:none;border-radius:var(--rs);color:#fff;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;letter-spacing:1px;font-family:var(--ui)}
-.pw-list{display:flex;flex-direction:column;gap:8px}
-.pw-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--rs);font-family:var(--mono);font-size:12px}
-.pw-val{color:var(--cyan);letter-spacing:1px;font-weight:600}
-.pw-status{font-size:10px;padding:2px 8px;border-radius:100px}
-.pw-status.free{background:rgba(0,232,162,.1);color:var(--green);border:1px solid rgba(0,232,162,.25)}
-.pw-status.used{background:rgba(255,64,96,.1);color:var(--red);border:1px solid rgba(255,64,96,.25)}
-.pw-actions{display:flex;gap:6px}
-.btn-pw-del,.btn-pw-reset{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 6px;opacity:.7;transition:opacity .2s}
-.btn-pw-del{color:var(--red)}
-.btn-pw-reset{color:var(--green)}
-.btn-pw-del:hover,.btn-pw-reset:hover{opacity:1}
-.pw-empty{color:var(--muted);font-size:12px;text-align:center;padding:24px;font-family:var(--mono)}
 
 /* ACCOUNTS */
 #acc-fab{position:fixed;bottom:28px;right:20px;z-index:200;background:linear-gradient(135deg,rgba(22,50,110,.9),rgba(30,60,140,.9));border:1px solid rgba(61,111,255,.35);color:#7eb3ff;padding:11px 20px;border-radius:100px;font-size:11px;font-family:var(--mono);font-weight:700;letter-spacing:1px;cursor:pointer;display:none;box-shadow:0 4px 24px rgba(61,111,255,.25);backdrop-filter:blur(8px);transition:all .2s}
@@ -264,28 +241,12 @@ footer{margin-top:56px;text-align:center;font-family:var(--mono);font-size:10px;
   .cp{min-width:46px;padding:0 8px;font-size:9px}
   .card-top{padding:18px 18px 14px}
   .login-box{padding:36px 24px}
-  #logout-btn,#admin-btn{font-size:10px;padding:6px 12px}
 }
 </style>
 </head>
 <body>
 
-<button id="admin-btn" onclick="openAdmin()">⚙ MANAGE</button>
 <button id="logout-btn" onclick="doLogout()">⏏ LOGOUT</button>
-
-<!-- ADMIN PANEL -->
-<div id="admin-panel">
-  <div class="admin-box">
-    <div class="admin-title">🔑 Password Manager
-      <button class="admin-close" onclick="closeAdmin()">✕</button>
-    </div>
-    <div class="gen-row">
-      <input class="gen-input" id="gen-pw-input" type="text" placeholder="Type new password..." autocomplete="off"/>
-      <button class="btn-gen" onclick="generatePW()">+ ADD</button>
-    </div>
-    <div class="pw-list" id="pw-list"><div class="pw-empty">Loading...</div></div>
-  </div>
-</div>
 
 <!-- LOGIN -->
 <div id="login-overlay">
@@ -573,15 +534,10 @@ async function fetchPing(){
   var badge = document.getElementById('ping-badge');
   var val   = document.getElementById('ping-value');
   try{
+    var t0 = performance.now();
     var r = await fetch('/api/ping', { headers: ah() });
     if(!r.ok) throw new Error('auth');
-    var d = await r.json();
-    if(d.avg === null || d.status === 'offline'){
-      badge.className = 'ping-badge bad';
-      val.textContent = 'OFFLINE';
-      return;
-    }
-    var ms = Math.round(d.avg);
+    var ms = Math.round(performance.now() - t0);
     val.textContent = ms + ' ms';
     badge.className = ms < 80 ? 'ping-badge' : ms < 200 ? 'ping-badge warn' : 'ping-badge bad';
   } catch(e){
@@ -720,14 +676,6 @@ async function doV2Ray(){
 }
 
 /* ─── ADMIN ─────────────────────────────────────────── */
-async function openAdmin(){ document.getElementById('admin-panel').classList.add('show'); await loadPWList(); }
-function closeAdmin(){ document.getElementById('admin-panel').classList.remove('show'); }
-async function loadPWList(){
-  try{
-    var r = await fetch('/api/admin/passwords', { headers: ah() });
-    var d = await r.json();
-    var list = document.getElementById('pw-list');
-    if(!d.passwords || !d.passwords.length){ list.innerHTML = '<div class="pw-empty">No passwords yet.</div>'; return; }
     list.innerHTML = d.passwords.map(function(p){
       return '<div class="pw-item">'
         +'<span class="pw-val">'+esc(p.password)+'</span>'
@@ -739,33 +687,8 @@ async function loadPWList(){
     }).join('');
   } catch(e){}
 }
-async function generatePW(){
-  var pw = document.getElementById('gen-pw-input').value.trim();
-  if(!pw) return showToast('Enter a password first!','err2');
-  try{
-    var r = await fetch('/api/admin/generate',{method:'POST',headers:ah({'Content-Type':'application/json'}),body:JSON.stringify({password:pw})});
-    var d = await r.json();
-    if(!r.ok||d.error) return showToast(d.error||'Error!','err2');
-    document.getElementById('gen-pw-input').value='';
-    showToast('Added: '+pw,'ok'); await loadPWList();
-  } catch(e){ showToast('Error','err2'); }
 }
-async function deletePW(pw){
-  if(!confirm('Delete: '+pw+'?')) return;
-  try{
-    var r = await fetch('/api/admin/passwords/'+encodeURIComponent(pw),{method:'DELETE',headers:ah()});
-    var d = await r.json();
-    if(!r.ok||d.error) return showToast(d.error||'Error!','err2');
-    showToast('Deleted!','ok'); await loadPWList();
-  } catch(e){}
 }
-async function resetPW(pw){
-  try{
-    var r = await fetch('/api/admin/passwords/'+encodeURIComponent(pw)+'/reset',{method:'POST',headers:ah()});
-    var d = await r.json();
-    if(!r.ok||d.error) return showToast(d.error||'Error!','err2');
-    showToast('Password free again!','ok'); await loadPWList();
-  } catch(e){}
 }
 
 /* ─── ACCOUNTS TABLE ────────────────────────────────── */
@@ -822,8 +745,7 @@ function onLoggedIn(){
   document.getElementById('login-overlay').classList.add('hidden');
   document.getElementById('logout-btn').style.display = 'block';
   if(_isAdmin){
-    document.getElementById('admin-btn').style.display = 'block';
-    document.getElementById('acc-fab').style.display   = 'block';
+    document.getElementById('acc-fab').style.display = 'block';
   }
   loadStats(); loadConfig(); startPing();
 }
