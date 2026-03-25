@@ -418,44 +418,36 @@ app.get('/api/limit', requireAuth, (req, res) => {
 });
 
 
-// GET /api/accounts - admin only, synced with real system users
+// GET /api/accounts - admin only
 app.get('/api/accounts', requireAdmin, (req, res) => {
-  const { execSync } = require('child_process');
-  // Get real system users (non-system, with /home)
-  let realUsers = new Set();
-  try {
-    const passwd = fs.readFileSync('/etc/passwd', 'utf8');
-    passwd.split('\n').forEach(line => {
-      const parts = line.split(':');
-      const uid = parseInt(parts[2]);
-      const shell = parts[6] || '';
-      if (uid >= 1000 && shell.includes('bash') && parts[5] && parts[5].includes('/home')) {
-        realUsers.add(parts[0]);
-      }
-    });
-  } catch(e) {}
-
   const db = loadDB();
   const now = new Date();
-
-  // Remove stale accounts whose system user no longer exists
-  let changed = false;
-  db.accounts = db.accounts.filter(a => {
-    if (a.type === 'ssh') {
-      if (!realUsers.has(a.username)) { changed = true; return false; }
-    }
-    return new Date(a.expiry) > now;
-  });
-  if (changed) saveDB(db);
-
   const active = db.accounts
+    .filter(a => new Date(a.expiry) > now)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   res.json({ accounts: active });
 });
 
-// GET /api/ping — client measures actual round-trip latency
+// GET /api/ping  — returns round-trip latency in ms (ICMP via system ping)
 app.get('/api/ping', requireAuth, (req, res) => {
-  res.json({ pong: true, ts: Date.now() });
+  const cfg = loadConfig();
+  const host = cfg.SERVER_HOST || '127.0.0.1';
+  // Use 4 ICMP packets, 2-second deadline
+  exec(`ping -c 4 -W 2 ${host}`, { timeout: 10000 }, (err, stdout) => {
+    // Parse "rtt min/avg/max/mdev = 1.23/2.34/3.45/0.56 ms"
+    const match = stdout.match(/rtt[^=]+=\s*([\d.]+)\/([\d.]+)\/([\d.]+)/);
+    if (match) {
+      return res.json({
+        host,
+        min: parseFloat(match[1]),
+        avg: parseFloat(match[2]),
+        max: parseFloat(match[3]),
+        status: 'online'
+      });
+    }
+    // If ping fails (host unreachable or timeout)
+    res.json({ host, min: null, avg: null, max: null, status: err ? 'offline' : 'unknown' });
+  });
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
