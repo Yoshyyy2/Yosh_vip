@@ -6,18 +6,21 @@ const cors = require('cors');
 const crypto = require('crypto');
 
 const app = express();
-const CONFIG_FILE = path.join(__dirname, 'config.json');
-const DB_FILE = path.join(__dirname, 'accounts.json');
-
-// ── Config ────────────────────────────────────────────────
-const PANEL_PASSWORD = 'Yoshyyydark_theuknown273572';
-const MAX_SESSIONS = 5;
-const DAILY_LIMIT_SSH = 2;
-const DAILY_LIMIT_V2RAY = 2;
-const SESSION_TTL = 24 * 60 * 60 * 1000;
-
+const CONFIG_FILE  = path.join(__dirname, 'config.json');
+const DB_FILE      = path.join(__dirname, 'accounts.json');
 const SESSIONS_FILE = path.join(__dirname, 'sessions.json');
+const PASSWORDS_FILE = path.join(__dirname, 'passwords.json');  // one-time passwords
 
+// ── Constants ─────────────────────────────────────────────
+const MAX_SESSIONS    = 5;
+const DAILY_LIMIT_SSH   = 2;
+const DAILY_LIMIT_V2RAY = 2;
+// NOTE: Sessions are now PERSISTENT (no TTL). They only end on explicit logout.
+
+const ADMIN_PASSWORD = 'Yoshpogi_123';
+
+
+// ── Session helpers (PERSISTENT — no expiry) ──────────────
 function loadSessions() {
   if (!fs.existsSync(SESSIONS_FILE)) return {};
   try { return JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf8')); }
@@ -25,15 +28,14 @@ function loadSessions() {
 }
 function saveSessions(s) { fs.writeFileSync(SESSIONS_FILE, JSON.stringify(s, null, 2)); }
 
-function cleanSessions() {
-  const s = loadSessions(); const now = Date.now(); let changed = false;
-  for (const [token, data] of Object.entries(s)) {
-    if (now - data.createdAt > SESSION_TTL) { delete s[token]; changed = true; }
-  }
-  if (changed) saveSessions(s);
+// ── Password helpers ──────────────────────────────────────
+// passwords.json format: { "list": [ { "id": "...", "value": "...", "label": "...", "createdAt": "..." } ] }
+function loadPasswords() {
+  if (!fs.existsSync(PASSWORDS_FILE)) { const d = { list: [] }; fs.writeFileSync(PASSWORDS_FILE, JSON.stringify(d, null, 2)); return d; }
+  try { const d = JSON.parse(fs.readFileSync(PASSWORDS_FILE, 'utf8')); if (!d.list) d.list = []; return d; }
+  catch { return { list: [] }; }
 }
-cleanSessions();
-setInterval(cleanSessions, 60 * 60 * 1000);
+function savePasswords(d) { fs.writeFileSync(PASSWORDS_FILE, JSON.stringify(d, null, 2)); }
 
 app.use(cors());
 app.use(express.json());
@@ -52,21 +54,6 @@ function requireAuth(req, res, next) {
   next();
 }
 
-
-// ── Telegram Notify ───────────────────────────────────────
-const TG_TOKEN = '8699561853:AAEfgO2yHpLYEDjEjXnw07IBZK03ykhLbdY';
-const TG_CHAT_ID = '6601184733';
-const ADMIN_PASSWORD = 'Admin_yosh123';
-
-function tgNotify(msg) {
-  const https = require('https');
-  const body = JSON.stringify({ chat_id: TG_CHAT_ID, text: msg, parse_mode: 'HTML' });
-  const req = https.request(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,
-    { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } });
-  req.on('error', e => console.error('[TG ERROR]', e.message));
-  req.write(body); req.end();
-}
-
 function requireAdmin(req, res, next) {
   const token = req.headers['x-auth-token'] || req.query.token;
   const sessions = loadSessions();
@@ -74,53 +61,6 @@ function requireAdmin(req, res, next) {
   if (!session || !session.isAdmin) return res.status(401).json({ error: 'Admin only.' });
   next();
 }
-
-// ── Daily limit check ─────────────────────────────────────
-function getDailyCount(ip, types) {
-  const db = loadDB();
-  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-  return db.accounts.filter(a =>
-    a.ip === ip &&
-    types.includes(a.type) &&
-    new Date(a.createdAt) >= todayStart
-  ).length;
-}
-
-// ── Login ─────────────────────────────────────────────────
-app.post('/api/login', (req, res) => {
-  const { password } = req.body;
-  if (!password) return res.status(400).json({ error: 'Password required.' });
-  const sessions = loadSessions();
-  const token = crypto.randomBytes(32).toString('hex');
-  if (password === ADMIN_PASSWORD) {
-    sessions[token] = { createdAt: Date.now(), lastActive: Date.now(), isAdmin: true };
-    saveSessions(sessions);
-    return res.json({ success: true, token, isAdmin: true });
-  }
-  if (password !== PANEL_PASSWORD) return res.status(401).json({ error: 'Wrong password!' });
-  sessions[token] = { createdAt: Date.now(), lastActive: Date.now(), isAdmin: false };
-  saveSessions(sessions);
-  return res.json({ success: true, token, isAdmin: false });
-});
-
-// ── Heartbeat ─────────────────────────────────────────────
-app.post('/api/heartbeat', (req, res) => {
-  const token = req.headers['x-auth-token'];
-  const sessions = loadSessions();
-  if (!token || !sessions[token]) return res.status(401).json({ error: 'Unauthorized' });
-  sessions[token].lastActive = Date.now();
-  saveSessions(sessions);
-  res.json({ ok: true });
-});
-
-// ── Logout ────────────────────────────────────────────────
-app.post('/api/logout', (req, res) => {
-  const token = req.headers['x-auth-token'];
-  const sessions = loadSessions();
-  delete sessions[token];
-  saveSessions(sessions);
-  res.json({ success: true });
-});
 
 // ── DB helpers ────────────────────────────────────────────
 function loadConfig() { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); }
@@ -133,6 +73,14 @@ function loadDB() {
 function saveDB(db) { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2)); }
 function expiryISO(days) { const d = new Date(); d.setDate(d.getDate() + days); return d.toISOString(); }
 
+function getDailyCount(ip, types) {
+  const db = loadDB();
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  return db.accounts.filter(a =>
+    a.ip === ip && types.includes(a.type) && new Date(a.createdAt) >= todayStart
+  ).length;
+}
+
 function cleanExpired() {
   const db = loadDB(); const now = new Date(); const before = db.accounts.length;
   db.accounts = db.accounts.filter(a => new Date(a.expiry) > now);
@@ -141,6 +89,108 @@ function cleanExpired() {
 setInterval(cleanExpired, 60 * 60 * 1000);
 cleanExpired();
 
+// ── Login — supports admin password OR one-time passwords ──
+app.post('/api/login', (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.status(400).json({ error: 'Password required.' });
+
+  const sessions = loadSessions();
+  const token = crypto.randomBytes(32).toString('hex');
+
+  // Admin password
+  if (password === ADMIN_PASSWORD) {
+    sessions[token] = { createdAt: Date.now(), lastActive: Date.now(), isAdmin: true };
+    saveSessions(sessions);
+    return res.json({ success: true, token, isAdmin: true });
+  }
+
+  // Check one-time passwords
+  const pwdData = loadPasswords();
+  const idx = pwdData.list.findIndex(p => p.value === password);
+  if (idx !== -1) {
+    // Valid one-time password — consume it (delete from list)
+    const consumed = pwdData.list.splice(idx, 1)[0];
+    savePasswords(pwdData);
+    sessions[token] = { createdAt: Date.now(), lastActive: Date.now(), isAdmin: false, usedPassword: consumed.value };
+    saveSessions(sessions);
+
+    return res.json({ success: true, token, isAdmin: false });
+  }
+
+  return res.status(401).json({ error: 'Wrong password!' });
+});
+
+// ── Heartbeat ─────────────────────────────────────────────
+app.post('/api/heartbeat', (req, res) => {
+  const token = req.headers['x-auth-token'];
+  const sessions = loadSessions();
+  if (!token || !sessions[token]) return res.status(401).json({ error: 'Unauthorized' });
+  sessions[token].lastActive = Date.now();
+  saveSessions(sessions);
+  res.json({ ok: true });
+});
+
+// ── Logout — ONLY explicit logout removes the session ─────
+app.post('/api/logout', (req, res) => {
+  const token = req.headers['x-auth-token'];
+  const sessions = loadSessions();
+  delete sessions[token];
+  saveSessions(sessions);
+  res.json({ success: true });
+});
+
+// ── Password Management (admin only) ─────────────────────
+
+// GET /api/passwords — list all passwords
+app.get('/api/passwords', requireAdmin, (req, res) => {
+  const d = loadPasswords();
+  res.json({ passwords: d.list });
+});
+
+// POST /api/passwords — add one or more passwords
+app.post('/api/passwords', requireAdmin, (req, res) => {
+  const { value, label, count } = req.body;
+  const d = loadPasswords();
+
+  if (value) {
+    // Add single specific password
+    if (d.list.find(p => p.value === value)) return res.status(409).json({ error: 'Password already exists.' });
+    const entry = { id: crypto.randomBytes(8).toString('hex'), value, label: label || '', createdAt: new Date().toISOString() };
+    d.list.push(entry);
+    savePasswords(d);
+    return res.json({ success: true, added: [entry] });
+  }
+
+  // Bulk generate random passwords
+  const n = Math.min(parseInt(count) || 1, 50);
+  const added = [];
+  for (let i = 0; i < n; i++) {
+    const pw = crypto.randomBytes(6).toString('hex'); // 12 char hex password
+    const entry = { id: crypto.randomBytes(8).toString('hex'), value: pw, label: label || '', createdAt: new Date().toISOString() };
+    d.list.push(entry);
+    added.push(entry);
+  }
+  savePasswords(d);
+  res.json({ success: true, added });
+});
+
+// DELETE /api/passwords/:id — remove a specific password
+app.delete('/api/passwords/:id', requireAdmin, (req, res) => {
+  const d = loadPasswords();
+  const before = d.list.length;
+  d.list = d.list.filter(p => p.id !== req.params.id);
+  if (d.list.length === before) return res.status(404).json({ error: 'Password not found.' });
+  savePasswords(d);
+  res.json({ success: true });
+});
+
+// DELETE /api/passwords — clear all passwords
+app.delete('/api/passwords', requireAdmin, (req, res) => {
+  savePasswords({ list: [] });
+  res.json({ success: true });
+});
+
+// ── Expect script runner ──────────────────────────────────
 function runExpect(script) {
   return new Promise((resolve, reject) => {
     const tmp = `/tmp/vipweb_${Date.now()}.exp`;
@@ -154,7 +204,7 @@ function runExpect(script) {
   });
 }
 
-// ── SSH (SG server - has Max Sessions prompt) ─────────────
+// ── SSH ───────────────────────────────────────────────────
 async function createSSH(username, password, days) {
   const script = `set timeout 60
 spawn menu
@@ -182,7 +232,7 @@ expect eof`;
   if (!out.toLowerCase().includes('created')) throw new Error('SSH creation failed');
 }
 
-// ── VLESS (menu 2 → 1) ────────────────────────────────────
+// ── VLESS ─────────────────────────────────────────────────
 async function createVLESS(username, days) {
   const cfg = loadConfig();
   const sni = cfg.SERVER_HOST;
@@ -216,7 +266,7 @@ expect eof`;
   return { tls: all.find(l => l.includes('443'))?.trim() || null, nonTls: all.find(l => l.includes(':80'))?.trim() || null };
 }
 
-// ── VMess (menu 2 → 1 → 2) ───────────────────────────────
+// ── VMess ─────────────────────────────────────────────────
 async function createVMess(username, days) {
   const cfg = loadConfig();
   const sni = cfg.SERVER_HOST;
@@ -250,7 +300,7 @@ expect eof`;
   return { tls: all.find(l => l.includes('443'))?.trim() || null, nonTls: all.find(l => l.includes(':80'))?.trim() || null };
 }
 
-// ── Trojan (menu 2 → 1 → 3) ──────────────────────────────
+// ── Trojan ────────────────────────────────────────────────
 async function createTrojan(password, days) {
   const cfg = loadConfig();
   const sni = cfg.SERVER_HOST;
@@ -307,7 +357,7 @@ app.get('/api/config', requireAuth, (req, res) => {
 app.post('/api/create/ssh', requireAuth, async (req, res) => {
   const ip = getIP(req);
   const used = getDailyCount(ip, ['ssh']);
-  if (used >= DAILY_LIMIT_SSH) return res.status(429).json({ error: `❌ Daily limit reached! You can only create ${DAILY_LIMIT_SSH} SSH accounts per day. Try again tomorrow.` });
+  if (used >= DAILY_LIMIT_SSH) return res.status(429).json({ error: `❌ Daily limit reached! You can only create ${DAILY_LIMIT_SSH} SSH accounts per day.` });
   const { username, password, days } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Username and password are required.' });
   if (!/^[a-zA-Z0-9_]{3,16}$/.test(username)) return res.status(400).json({ error: 'Username must be 3–16 characters.' });
@@ -318,10 +368,10 @@ app.post('/api/create/ssh', requireAuth, async (req, res) => {
     await createSSH(username, password, expDays);
     const expiry = expiryISO(expDays);
     const db = loadDB();
-    db.accounts.push({ id: Date.now().toString(), username, password, type: 'ssh', expiry, ip: getIP(req), createdAt: new Date().toISOString() });
+    db.accounts.push({ id: Date.now().toString(), username, password, type: 'ssh', expiry, ip, createdAt: new Date().toISOString() });
     saveDB(db);
     const sshExp = new Date(expiry).toLocaleString('en-PH',{timeZone:'Asia/Manila'});
-    tgNotify(`🖥️ <b>SSH CREATED</b>\n👤 User: <code>${username}</code>\n🔐 Pass: <code>${password}</code>\n⏳ Expires: ${sshExp}\n🌐 Host: ${cfg.SERVER_HOST}\n📍 IP: ${ip}`);
+
     res.json({ success: true, type: 'ssh', username, password, host: cfg.SERVER_HOST, ns: cfg.SERVER_NS, pubkey: cfg.SERVER_PUBKEY, expiry, days: expDays });
   } catch (e) {
     console.error('[SSH ERROR]', e);
@@ -329,52 +379,50 @@ app.post('/api/create/ssh', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/create/vless
+// POST /api/create/vless — no password needed
 app.post('/api/create/vless', requireAuth, async (req, res) => {
   const ip = getIP(req);
   const used = getDailyCount(ip, ['vless','vmess','trojan']);
-  if (used >= DAILY_LIMIT_V2RAY) return res.status(429).json({ error: `❌ Daily limit reached! You can only create ${DAILY_LIMIT_V2RAY} V2Ray accounts per day. Try again tomorrow.` });
-  const { username, password, days } = req.body;
+  if (used >= DAILY_LIMIT_V2RAY) return res.status(429).json({ error: `❌ Daily limit reached! You can only create ${DAILY_LIMIT_V2RAY} V2Ray accounts per day.` });
+  const { username, days } = req.body;
   if (!username) return res.status(400).json({ error: 'Username is required.' });
   if (!/^[a-zA-Z0-9_]{3,16}$/.test(username)) return res.status(400).json({ error: 'Username must be 3–16 characters.' });
-  if (!password || password.length < 4) return res.status(400).json({ error: 'Password must be at least 4 characters.' });
   const cfg = loadConfig();
   const expDays = Math.min(Math.max(parseInt(days) || cfg.EXPIRY_DAYS || 5, 1), 90);
   try {
     const { tls, nonTls } = await createVLESS(username, expDays);
     const expiry = expiryISO(expDays);
     const db = loadDB();
-    db.accounts.push({ id: Date.now().toString(), username, password, type: 'vless', expiry, ip: getIP(req), createdAt: new Date().toISOString(), tls, nonTls });
+    db.accounts.push({ id: Date.now().toString(), username, type: 'vless', expiry, ip, createdAt: new Date().toISOString(), tls, nonTls });
     saveDB(db);
-    const vlessExp = new Date(expiry).toLocaleString('en-PH',{timeZone:'Asia/Manila'});
-    tgNotify(`📡 <b>VLESS CREATED</b>\n📧 User: <code>${username}</code>\n⏳ Expires: ${vlessExp}\n🌐 Host: ${cfg.SERVER_HOST}\n📍 IP: ${ip}`);
-    res.json({ success: true, type: 'vless', username, password, host: cfg.SERVER_HOST, expiry, days: expDays, tls, nonTls });
+    const exp = new Date(expiry).toLocaleString('en-PH',{timeZone:'Asia/Manila'});
+
+    res.json({ success: true, type: 'vless', username, host: cfg.SERVER_HOST, expiry, days: expDays, tls, nonTls });
   } catch (e) {
     console.error('[VLESS ERROR]', e);
     res.status(500).json({ error: 'Failed to create VLESS account. Please try again.' });
   }
 });
 
-// POST /api/create/vmess
+// POST /api/create/vmess — no password needed
 app.post('/api/create/vmess', requireAuth, async (req, res) => {
   const ip = getIP(req);
   const used = getDailyCount(ip, ['vless','vmess','trojan']);
-  if (used >= DAILY_LIMIT_V2RAY) return res.status(429).json({ error: `❌ Daily limit reached! You can only create ${DAILY_LIMIT_V2RAY} V2Ray accounts per day. Try again tomorrow.` });
-  const { username, password, days } = req.body;
+  if (used >= DAILY_LIMIT_V2RAY) return res.status(429).json({ error: `❌ Daily limit reached! You can only create ${DAILY_LIMIT_V2RAY} V2Ray accounts per day.` });
+  const { username, days } = req.body;
   if (!username) return res.status(400).json({ error: 'Username is required.' });
   if (!/^[a-zA-Z0-9_]{3,16}$/.test(username)) return res.status(400).json({ error: 'Username must be 3–16 characters.' });
-  if (!password || password.length < 4) return res.status(400).json({ error: 'Password must be at least 4 characters.' });
   const cfg = loadConfig();
   const expDays = Math.min(Math.max(parseInt(days) || cfg.EXPIRY_DAYS || 5, 1), 90);
   try {
     const { tls, nonTls } = await createVMess(username, expDays);
     const expiry = expiryISO(expDays);
     const db = loadDB();
-    db.accounts.push({ id: Date.now().toString(), username, password, type: 'vmess', expiry, ip: getIP(req), createdAt: new Date().toISOString(), tls, nonTls });
+    db.accounts.push({ id: Date.now().toString(), username, type: 'vmess', expiry, ip, createdAt: new Date().toISOString(), tls, nonTls });
     saveDB(db);
-    const vmessExp = new Date(expiry).toLocaleString('en-PH',{timeZone:'Asia/Manila'});
-    tgNotify(`📡 <b>VMESS CREATED</b>\n📧 User: <code>${username}</code>\n⏳ Expires: ${vmessExp}\n🌐 Host: ${cfg.SERVER_HOST}\n📍 IP: ${ip}`);
-    res.json({ success: true, type: 'vmess', username, password, host: cfg.SERVER_HOST, expiry, days: expDays, tls, nonTls });
+    const exp = new Date(expiry).toLocaleString('en-PH',{timeZone:'Asia/Manila'});
+
+    res.json({ success: true, type: 'vmess', username, host: cfg.SERVER_HOST, expiry, days: expDays, tls, nonTls });
   } catch (e) {
     console.error('[VMESS ERROR]', e);
     res.status(500).json({ error: 'Failed to create VMess account. Please try again.' });
@@ -385,7 +433,7 @@ app.post('/api/create/vmess', requireAuth, async (req, res) => {
 app.post('/api/create/trojan', requireAuth, async (req, res) => {
   const ip = getIP(req);
   const used = getDailyCount(ip, ['vless','vmess','trojan']);
-  if (used >= DAILY_LIMIT_V2RAY) return res.status(429).json({ error: `❌ Daily limit reached! You can only create ${DAILY_LIMIT_V2RAY} V2Ray accounts per day. Try again tomorrow.` });
+  if (used >= DAILY_LIMIT_V2RAY) return res.status(429).json({ error: `❌ Daily limit reached! You can only create ${DAILY_LIMIT_V2RAY} V2Ray accounts per day.` });
   const { password, days } = req.body;
   if (!password) return res.status(400).json({ error: 'Password is required.' });
   if (password.length < 4) return res.status(400).json({ error: 'Password must be at least 4 characters.' });
@@ -395,10 +443,10 @@ app.post('/api/create/trojan', requireAuth, async (req, res) => {
     const { tls, nonTls } = await createTrojan(password, expDays);
     const expiry = expiryISO(expDays);
     const db = loadDB();
-    db.accounts.push({ id: Date.now().toString(), username: password, type: 'trojan', expiry, ip: getIP(req), createdAt: new Date().toISOString(), tls, nonTls });
+    db.accounts.push({ id: Date.now().toString(), username: password, type: 'trojan', expiry, ip, createdAt: new Date().toISOString(), tls, nonTls });
     saveDB(db);
-    const trojanExp = new Date(expiry).toLocaleString('en-PH',{timeZone:'Asia/Manila'});
-    tgNotify(`📡 <b>TROJAN CREATED</b>\n🔐 Pass: <code>${password}</code>\n⏳ Expires: ${trojanExp}\n🌐 Host: ${cfg.SERVER_HOST}\n📍 IP: ${ip}`);
+    const exp = new Date(expiry).toLocaleString('en-PH',{timeZone:'Asia/Manila'});
+
     res.json({ success: true, type: 'trojan', password, host: cfg.SERVER_HOST, expiry, days: expDays, tls, nonTls });
   } catch (e) {
     console.error('[TROJAN ERROR]', e);
@@ -406,10 +454,9 @@ app.post('/api/create/trojan', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/limit
 app.get('/api/limit', requireAuth, (req, res) => {
   const ip = getIP(req);
-  const sshUsed = getDailyCount(ip, ['ssh']);
+  const sshUsed   = getDailyCount(ip, ['ssh']);
   const v2rayUsed = getDailyCount(ip, ['vless','vmess','trojan']);
   res.json({
     ssh:   { used: sshUsed,   remaining: Math.max(0, DAILY_LIMIT_SSH - sshUsed),     limit: DAILY_LIMIT_SSH },
@@ -417,11 +464,8 @@ app.get('/api/limit', requireAuth, (req, res) => {
   });
 });
 
-
-// GET /api/accounts - admin only, synced with real system users
 app.get('/api/accounts', requireAdmin, (req, res) => {
   const { execSync } = require('child_process');
-  // Get real system users (non-system, with /home)
   let realUsers = new Set();
   try {
     const passwd = fs.readFileSync('/etc/passwd', 'utf8');
@@ -434,26 +478,16 @@ app.get('/api/accounts', requireAdmin, (req, res) => {
       }
     });
   } catch(e) {}
-
-  const db = loadDB();
-  const now = new Date();
-
-  // Remove stale accounts whose system user no longer exists
+  const db = loadDB(); const now = new Date();
   let changed = false;
   db.accounts = db.accounts.filter(a => {
-    if (a.type === 'ssh') {
-      if (!realUsers.has(a.username)) { changed = true; return false; }
-    }
+    if (a.type === 'ssh' && !realUsers.has(a.username)) { changed = true; return false; }
     return new Date(a.expiry) > now;
   });
   if (changed) saveDB(db);
-
-  const active = db.accounts
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  res.json({ accounts: active });
+  res.json({ accounts: db.accounts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) });
 });
 
-// GET /api/ping — client measures actual round-trip latency
 app.get('/api/ping', requireAuth, (req, res) => {
   res.json({ pong: true, ts: Date.now() });
 });
@@ -461,5 +495,6 @@ app.get('/api/ping', requireAuth, (req, res) => {
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => { res.sendFile(path.join(__dirname, 'public', 'index.html')); });
 
-const PORT = process.env.PORT || 3855;
+// ── PORT 3709 ─────────────────────────────────────────────
+const PORT = process.env.PORT || 3709;
 app.listen(PORT, () => console.log(`🚀 Yosh VIP Panel running on http://localhost:${PORT}`));

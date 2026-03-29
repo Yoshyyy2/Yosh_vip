@@ -243,6 +243,49 @@ input:focus{border-color:rgba(240,180,41,.4);box-shadow:0 0 0 3px rgba(240,180,4
 .toast.err2{border-color:rgba(255,107,107,.35);color:var(--rose);background:rgba(255,107,107,.06)}
 .toast.gold{border-color:rgba(240,180,41,.35);color:var(--gold2);background:rgba(240,180,41,.06)}
 
+/* PASSWORD MANAGER */
+#pwd-fab{position:fixed;bottom:28px;left:22px;z-index:200;background:linear-gradient(135deg,rgba(20,10,4,.95),rgba(30,15,4,.95));border:1px solid rgba(240,180,41,.25);color:var(--gold);padding:13px 24px;border-radius:100px;font-size:10px;font-family:var(--mono);font-weight:700;letter-spacing:2px;cursor:pointer;display:none;box-shadow:0 6px 32px rgba(240,180,41,.18);backdrop-filter:blur(12px);transition:all .25s;text-transform:uppercase}
+#pwd-fab:hover{box-shadow:0 10px 44px rgba(240,180,41,.35);transform:translateY(-2px)}
+#pwd-panel{display:none;position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,.93);backdrop-filter:blur(16px);align-items:flex-start;justify-content:center;padding:22px;overflow-y:auto}
+#pwd-panel.show{display:flex}
+.pwd-box{background:linear-gradient(160deg,rgba(17,16,8,.99),rgba(11,8,0,.99));border:1px solid rgba(240,180,41,.14);border-radius:24px;padding:26px;width:100%;max-width:600px;margin:auto;box-shadow:0 40px 100px rgba(0,0,0,.8)}
+.pwd-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.pwd-title{font-size:11px;font-weight:800;color:var(--cream);letter-spacing:3px;font-family:var(--mono);text-transform:uppercase}
+.pwd-close{background:none;border:none;color:#333;font-size:22px;cursor:pointer;transition:color .2s}
+.pwd-close:hover{color:var(--rose)}
+.pwd-add-row{display:flex;gap:8px;margin-bottom:12px}
+.pwd-add-row input{flex:1;background:rgba(0,0,0,.6);border:1px solid var(--border2);border-radius:10px;color:var(--white);font-family:var(--mono);font-size:13px;padding:11px 16px;outline:none;transition:all .25s}
+.pwd-add-row input:focus{border-color:rgba(240,180,41,.4);box-shadow:0 0 0 2px rgba(240,180,41,.07)}
+.pwd-add-row input::placeholder{color:var(--muted);font-size:11px}
+.pwd-add-btn{padding:11px 20px;border-radius:10px;border:none;background:linear-gradient(135deg,#b87a08,#f0b429);color:#0a0700;font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:2px;cursor:pointer;white-space:nowrap;transition:all .22s;text-transform:uppercase}
+.pwd-add-btn:hover{box-shadow:0 6px 24px rgba(240,180,41,.4);transform:translateY(-1px)}
+.pwd-gen-row{display:flex;gap:8px;margin-bottom:20px;align-items:center;flex-wrap:wrap}
+.pwd-gen-row input[type=number]{width:72px;background:rgba(0,0,0,.6);border:1px solid var(--border2);border-radius:10px;color:var(--white);font-family:var(--mono);font-size:13px;padding:11px 14px;outline:none;-moz-appearance:textfield;transition:all .25s}
+.pwd-gen-row input[type=text]{flex:1;min-width:120px;background:rgba(0,0,0,.6);border:1px solid var(--border2);border-radius:10px;color:var(--white);font-family:var(--mono);font-size:13px;padding:11px 14px;outline:none;transition:all .25s}
+.pwd-gen-row input:focus{border-color:rgba(240,180,41,.4)}
+.pwd-gen-row input::placeholder{color:var(--muted);font-size:11px}
+.pwd-gen-btn{padding:11px 20px;border-radius:10px;border:1px solid rgba(240,180,41,.25);background:rgba(240,180,41,.07);color:var(--gold2);font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:2px;cursor:pointer;white-space:nowrap;transition:all .22s;text-transform:uppercase}
+.pwd-gen-btn:hover{background:rgba(240,180,41,.14);border-color:rgba(240,180,41,.45)}
+.pwd-actions-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.pwd-del-all{padding:8px 16px;border-radius:8px;border:1px solid rgba(255,107,107,.2);background:rgba(255,107,107,.04);color:rgba(255,107,107,.6);font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.5px;cursor:pointer;transition:all .22s;text-transform:uppercase}
+.pwd-del-all:hover{background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.4);color:var(--rose)}
+.pwd-stats{display:flex;gap:8px;margin-bottom:16px}
+.pwd-stat{padding:5px 14px;border-radius:100px;font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:2px;background:rgba(240,180,41,.08);color:var(--gold2);border:1px solid rgba(240,180,41,.2)}
+.pwd-list{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto;padding-right:4px}
+.pwd-list::-webkit-scrollbar{width:4px}
+.pwd-list::-webkit-scrollbar-track{background:rgba(255,255,255,.02);border-radius:4px}
+.pwd-list::-webkit-scrollbar-thumb{background:rgba(240,180,41,.2);border-radius:4px}
+.pwd-item{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:12px;padding:12px 16px;transition:border-color .2s;animation:rowSlide .3s ease both}
+.pwd-item:hover{border-color:rgba(240,180,41,.2)}
+.pwd-item-val{font-family:var(--mono);font-size:13px;color:var(--white);flex:1;word-break:break-all}
+.pwd-item-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;white-space:nowrap;padding:3px 8px;background:rgba(240,180,41,.05);border:1px solid rgba(240,180,41,.1);border-radius:5px}
+.pwd-item-copy{padding:5px 12px;border-radius:7px;border:1px solid var(--border2);background:none;color:var(--muted);font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .18s;text-transform:uppercase}
+.pwd-item-copy:hover{color:var(--gold2);border-color:rgba(240,180,41,.3);background:rgba(240,180,41,.05)}
+.pwd-item-copy.ok{color:var(--teal);border-color:rgba(0,212,170,.3)}
+.pwd-item-del{padding:5px 10px;border-radius:7px;border:1px solid rgba(255,107,107,.15);background:none;color:rgba(255,107,107,.4);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .18s}
+.pwd-item-del:hover{color:var(--rose);border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.05)}
+.pwd-empty{text-align:center;color:var(--muted);padding:32px;font-size:11px;letter-spacing:2px;font-family:var(--mono)}
+
 /* FOOTER */
 footer{margin-top:70px;text-align:center;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:3px;animation:fu .5s .5s ease both;line-height:2.8;text-transform:uppercase}
 
@@ -364,7 +407,7 @@ footer{margin-top:70px;text-align:center;font-family:var(--mono);font-size:9px;c
         <button class="proto-btn" id="proto-trojan" onclick="setProto('trojan')">Trojan</button>
       </div>
       <div id="v2ray-user-field" class="field"><label>Username</label><input id="vless-user" type="text" placeholder="e.g. johndoe" maxlength="16" autocomplete="off" spellcheck="false"/><div class="hint">3–16 chars · letters/numbers/_</div></div>
-      <div class="field"><label id="v2ray-pass-label">Password</label><input id="v2ray-pass" type="text" placeholder="e.g. mypass123" maxlength="32" autocomplete="off" spellcheck="false"/><div class="hint">Min. 4 characters</div></div>
+      <div class="field" id="v2ray-pass-field" style="display:none"><label id="v2ray-pass-label">Password</label><input id="v2ray-pass" type="text" placeholder="e.g. mypass123" maxlength="32" autocomplete="off" spellcheck="false"/><div class="hint">Min. 4 characters · Trojan only</div></div>
       <div class="err" id="vless-err"><span>⚠</span><span id="vless-err-txt"></span></div>
       <button class="btn-create btn-vless" id="vless-btn" onclick="doV2Ray()"><div class="spin" id="vless-spin"></div><span id="vless-btn-txt">◎ &nbsp;CREATE VLESS ACCOUNT</span></button>
     </div>
@@ -380,11 +423,40 @@ footer{margin-top:70px;text-align:center;font-family:var(--mono);font-size:9px;c
 
 <div class="toast" id="toast"></div>
 <button id="acc-fab" onclick="openAccounts()">◈ ACCOUNTS</button>
+<button id="pwd-fab" onclick="openPasswords()">🔑 PASSWORDS</button>
+
 <div id="accounts-panel">
   <div class="acc-box">
     <div class="acc-header"><span class="acc-title">◈ Active Accounts</span><button class="acc-close" onclick="closeAccounts()">✕</button></div>
     <div class="acc-pills"><span class="acc-pill total" id="acc-total">Total: 0</span><span class="acc-pill ssh" id="acc-ssh">SSH: 0</span><span class="acc-pill v2ray" id="acc-v2ray">V2Ray: 0</span></div>
     <div class="acc-wrap"><table class="acc-table"><thead><tr><th>TYPE</th><th>USERNAME</th><th>EXPIRES</th><th>IP</th><th>CREATED</th></tr></thead><tbody id="acc-tbody"><tr><td colspan="5" class="acc-empty">Loading...</td></tr></tbody></table></div>
+  </div>
+</div>
+
+<!-- PASSWORD MANAGER PANEL -->
+<div id="pwd-panel">
+  <div class="pwd-box">
+    <div class="pwd-header">
+      <span class="pwd-title">🔑 Password Manager</span>
+      <button class="pwd-close" onclick="closePasswords()">✕</button>
+    </div>
+    <!-- Add specific password -->
+    <div class="pwd-add-row">
+      <input id="pwd-input" type="text" placeholder="Custom password (leave blank to auto-generate)"/>
+      <input id="pwd-label" type="text" placeholder="Label e.g. VIP1" style="max-width:140px"/>
+      <button class="pwd-add-btn" onclick="addPassword()">+ ADD</button>
+    </div>
+    <!-- Bulk generate -->
+    <div class="pwd-gen-row">
+      <input id="pwd-gen-count" type="number" value="1" min="1" max="50" placeholder="Count"/>
+      <input id="pwd-gen-label" type="text" placeholder="Bulk label (optional)"/>
+      <button class="pwd-gen-btn" onclick="generatePasswords()">⚡ GENERATE</button>
+    </div>
+    <div class="pwd-actions-row">
+      <button class="pwd-del-all" onclick="clearAllPasswords()">🗑 CLEAR ALL</button>
+    </div>
+    <div class="pwd-stats" id="pwd-stats"><span class="pwd-stat" id="pwd-count-badge">0 remaining</span></div>
+    <div class="pwd-list" id="pwd-list"><div class="pwd-empty">No passwords yet. Add some above!</div></div>
   </div>
 </div>
 
@@ -417,7 +489,7 @@ function fireConfetti(x,y){
 
 /* STATE */
 var _isAdmin=false,_proto='vless',_pingInterval=null,_lastSSH=null,_lastV2Ray=null;
-function getToken(){return sessionStorage.getItem('yosh_token')||'';}
+function getToken(){return localStorage.getItem('yosh_token')||'';}
 function ah(x){return Object.assign({'x-auth-token':getToken()},x||{});}
 
 /* TOAST */
@@ -482,21 +554,26 @@ async function doSSH(){
 }
 
 /* PROTO */
-function setProto(p){_proto=p;['vless','vmess','trojan'].forEach(function(x){document.getElementById('proto-'+x).classList.remove('active');});document.getElementById('proto-'+p).classList.add('active');var icons={vless:'VL',vmess:'VM',trojan:'TJ'};var titles={vless:'Create VLESS Account',vmess:'Create VMess Account',trojan:'Create Trojan Account'};var btntxt={vless:'◎  CREATE VLESS ACCOUNT',vmess:'◎  CREATE VMESS ACCOUNT',trojan:'◎  CREATE TROJAN ACCOUNT'};document.getElementById('v2ray-icon').textContent=icons[p];document.getElementById('v2ray-title').textContent=titles[p];document.getElementById('vless-btn-txt').textContent=btntxt[p];document.getElementById('v2ray-user-field').style.display=(p==='trojan')?'none':'block';document.getElementById('v2ray-pass-label').textContent=(p==='trojan')?'PASSWORD (Trojan)':'PASSWORD';}
+function setProto(p){_proto=p;['vless','vmess','trojan'].forEach(function(x){document.getElementById('proto-'+x).classList.remove('active');});document.getElementById('proto-'+p).classList.add('active');var icons={vless:'VL',vmess:'VM',trojan:'TJ'};var titles={vless:'Create VLESS Account',vmess:'Create VMess Account',trojan:'Create Trojan Account'};var btntxt={vless:'◎  CREATE VLESS ACCOUNT',vmess:'◎  CREATE VMESS ACCOUNT',trojan:'◎  CREATE TROJAN ACCOUNT'};document.getElementById('v2ray-icon').textContent=icons[p];document.getElementById('v2ray-title').textContent=titles[p];document.getElementById('vless-btn-txt').textContent=btntxt[p];document.getElementById('v2ray-user-field').style.display=(p==='trojan')?'none':'block';document.getElementById('v2ray-pass-field').style.display=(p==='trojan')?'block':'none';}
 
 /* V2RAY */
 async function doV2Ray(){
   document.getElementById('vless-err').classList.remove('show');
   var user=document.getElementById('vless-user').value.trim(),pass=document.getElementById('v2ray-pass').value.trim();
   if(_proto!=='trojan'){if(!user)return showErr('vless','Username is required.');if(!/^[a-zA-Z0-9_]{3,16}$/.test(user))return showErr('vless','Username: 3–16 chars, letters/numbers/_ only.');}
-  if(!pass)return showErr('vless','Password is required.');if(pass.length<4)return showErr('vless','Password must be at least 4 characters.');
+  if(_proto==='trojan'){if(!pass)return showErr('vless','Password is required.');if(pass.length<4)return showErr('vless','Password must be at least 4 characters.');}
   setLoad('vless',true);
-  try{var body=(_proto==='trojan')?{password:pass}:{username:user,password:pass};var res=await fetch('/api/create/'+_proto,{method:'POST',headers:ah({'Content-Type':'application/json'}),body:JSON.stringify(body)});var d=await res.json();if(!res.ok||d.error)return showErr('vless',d.error||'Server error.');
-  var exp=new Date(d.expiry).toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'short',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  var rows='';if(_proto!=='trojan')rows+=makeRow('Username',d.username);rows+=makeRow('Password',d.password||pass)+makeRow('Host',d.host)+makeRow('SNI',d.host)+makeRow('Expires',exp+' ('+d.days+' days)')+'<div class="row-divider"></div>'+makeRow('TLS 443',d.tls||'N/A','green')+'<div class="row-divider"></div>'+makeRow('HTTP 80',d.nonTls||'N/A','cyan');
-  document.getElementById('vless-rows').innerHTML=rows;document.getElementById('v2ray-result-title').textContent=_proto.toUpperCase()+' Account Created';
-  _lastV2Ray=Object.assign({},d,{password:d.password||pass});showResult('vless-result');
-  if(_proto!=='trojan')document.getElementById('vless-user').value='';document.getElementById('v2ray-pass').value='';showToast('✓ '+_proto.toUpperCase()+' account created!','ok');loadStats();}
+  try{
+    var body=(_proto==='trojan')?{password:pass}:{username:user};
+    var res=await fetch('/api/create/'+_proto,{method:'POST',headers:ah({'Content-Type':'application/json'}),body:JSON.stringify(body)});var d=await res.json();if(!res.ok||d.error)return showErr('vless',d.error||'Server error.');
+    var exp=new Date(d.expiry).toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'short',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    var rows='';if(_proto!=='trojan')rows+=makeRow('Username',d.username);if(_proto==='trojan')rows+=makeRow('Password',d.password||pass);
+    rows+=makeRow('Host',d.host)+makeRow('SNI',d.host)+makeRow('Expires',exp+' ('+d.days+' days)')+'<div class="row-divider"></div>'+makeRow('TLS 443',d.tls||'N/A','green')+'<div class="row-divider"></div>'+makeRow('HTTP 80',d.nonTls||'N/A','cyan');
+    document.getElementById('vless-rows').innerHTML=rows;document.getElementById('v2ray-result-title').textContent=_proto.toUpperCase()+' Account Created';
+    _lastV2Ray=Object.assign({},d,{password:d.password||pass});showResult('vless-result');
+    if(_proto!=='trojan')document.getElementById('vless-user').value='';
+    document.getElementById('v2ray-pass').value='';
+    showToast('✓ '+_proto.toUpperCase()+' account created!','ok');loadStats();}
   catch(e){showErr('vless','Cannot reach server.');}finally{setLoad('vless',false);}
 }
 
@@ -517,25 +594,74 @@ async function doLogin(){
     var r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pass})});
     var d=await r.json();
     if(!r.ok||d.error){btn.disabled=false;btn.querySelector('.btext').style.opacity='1';btn.querySelector('.bspin').style.display='none';errEl.textContent=d.error||'Wrong password!';errEl.classList.add('show');var inp=document.getElementById('login-pass');inp.style.animation='shake .35s ease';setTimeout(function(){inp.style.animation='';},500);return;}
-    sessionStorage.setItem('yosh_token',d.token);_isAdmin=d.isAdmin||false;
+    localStorage.setItem('yosh_token',d.token);_isAdmin=d.isAdmin||false;
     btn.querySelector('.bspin').style.display='none';btn.classList.add('morph');
     var br=btn.getBoundingClientRect();fireConfetti(br.left+br.width/2,br.top+br.height/2);
     setTimeout(function(){
       document.getElementById('login-overlay').classList.add('hidden');
       document.getElementById('logout-btn').style.display='block';
-      if(_isAdmin)document.getElementById('acc-fab').style.display='block';
+      if(_isAdmin){document.getElementById('acc-fab').style.display='block';document.getElementById('pwd-fab').style.display='block';}
       loadStats();loadConfig();startPing();
       setTimeout(function(){btn.classList.remove('morph');btn.disabled=false;btn.querySelector('.btext').style.opacity='1';},700);
     },1100);
   }catch(e){btn.disabled=false;btn.querySelector('.btext').style.opacity='1';btn.querySelector('.bspin').style.display='none';errEl.textContent='Cannot reach server.';errEl.classList.add('show');}
 }
-async function doLogout(){clearInterval(_pingInterval);await fetch('/api/logout',{method:'POST',headers:ah()}).catch(function(){});sessionStorage.removeItem('yosh_token');location.reload();}
+async function doLogout(){clearInterval(_pingInterval);await fetch('/api/logout',{method:'POST',headers:ah()}).catch(function(){});localStorage.removeItem('yosh_token');location.reload();}
 
 /* HEARTBEAT */
 setInterval(function(){var t=getToken();if(!t)return;fetch('/api/heartbeat',{method:'POST',headers:ah()}).catch(function(){});},5*60*1000);
 
 /* BOOT */
-(function(){var token=getToken();if(!token)return;fetch('/api/stats',{headers:ah()}).then(function(r){if(r.ok){document.getElementById('login-overlay').classList.add('hidden');document.getElementById('logout-btn').style.display='block';r.json().then(function(d){numAnim(document.getElementById('stat-total'),d.total||0);numAnim(document.getElementById('stat-ssh'),d.ssh||0);numAnim(document.getElementById('stat-vless'),d.v2ray||0);});loadConfig();startPing();fetch('/api/accounts',{headers:ah()}).then(function(ra){if(ra.ok){_isAdmin=true;document.getElementById('acc-fab').style.display='block';}}).catch(function(){});}else sessionStorage.removeItem('yosh_token');}).catch(function(){});})();
+(function(){var token=localStorage.getItem('yosh_token');if(!token)return;fetch('/api/stats',{headers:ah()}).then(function(r){if(r.ok){document.getElementById('login-overlay').classList.add('hidden');document.getElementById('logout-btn').style.display='block';r.json().then(function(d){numAnim(document.getElementById('stat-total'),d.total||0);numAnim(document.getElementById('stat-ssh'),d.ssh||0);numAnim(document.getElementById('stat-vless'),d.v2ray||0);});loadConfig();startPing();fetch('/api/accounts',{headers:ah()}).then(function(ra){if(ra.ok){_isAdmin=true;document.getElementById('acc-fab').style.display='block';document.getElementById('pwd-fab').style.display='block';}}).catch(function(){});}else localStorage.removeItem('yosh_token');}).catch(function(){});})();
+
+/* PASSWORD MANAGER */
+function openPasswords(){document.getElementById('pwd-panel').classList.add('show');loadPasswords();}
+function closePasswords(){document.getElementById('pwd-panel').classList.remove('show');}
+async function loadPasswords(){
+  var list=document.getElementById('pwd-list'),badge=document.getElementById('pwd-count-badge');
+  list.innerHTML='<div class="pwd-empty">Loading...</div>';
+  try{var r=await fetch('/api/passwords',{headers:ah()});if(!r.ok)return(list.innerHTML='<div class="pwd-empty">Unauthorized</div>');
+  var d=await r.json(),pwds=d.passwords||[];
+  badge.textContent=pwds.length+' remaining';
+  if(!pwds.length){list.innerHTML='<div class="pwd-empty">No passwords yet. Add some above!</div>';return;}
+  list.innerHTML=pwds.map(function(p,i){
+    return'<div class="pwd-item" style="animation-delay:'+(i*.04)+'s"><div class="pwd-item-val">'+esc(p.value)+'</div>'+(p.label?'<div class="pwd-item-label">'+esc(p.label)+'</div>':'')+
+    '<button class="pwd-item-copy" onclick="copyPwd(this,\''+esc(p.value)+'\')">COPY</button>'+
+    '<button class="pwd-item-del" onclick="deletePwd(\''+p.id+'\')">✕</button></div>';
+  }).join('');
+  }catch(e){list.innerHTML='<div class="pwd-empty">Error loading passwords.</div>';}
+}
+function copyPwd(btn,val){doCopy(val);var orig=btn.textContent;btn.textContent='✓';btn.classList.add('ok');setTimeout(function(){btn.textContent=orig;btn.classList.remove('ok');},1800);}
+async function addPassword(){
+  var val=document.getElementById('pwd-input').value.trim();
+  var label=document.getElementById('pwd-label').value.trim();
+  var body=label?{label}:{};if(val)body.value=val;
+  try{var r=await fetch('/api/passwords',{method:'POST',headers:ah({'Content-Type':'application/json'}),body:JSON.stringify(body)});
+  var d=await r.json();if(!r.ok||d.error){showToast(d.error||'Error','err2');return;}
+  document.getElementById('pwd-input').value='';document.getElementById('pwd-label').value='';
+  showToast('✓ Password added!','gold');loadPasswords();}
+  catch(e){showToast('Cannot reach server.','err2');}
+}
+async function generatePasswords(){
+  var count=parseInt(document.getElementById('pwd-gen-count').value)||1;
+  var label=document.getElementById('pwd-gen-label').value.trim();
+  var body={count};if(label)body.label=label;
+  try{var r=await fetch('/api/passwords',{method:'POST',headers:ah({'Content-Type':'application/json'}),body:JSON.stringify(body)});
+  var d=await r.json();if(!r.ok||d.error){showToast(d.error||'Error','err2');return;}
+  showToast('✓ Generated '+d.added.length+' password'+(d.added.length>1?'s':'')+'!','gold');loadPasswords();}
+  catch(e){showToast('Cannot reach server.','err2');}
+}
+async function deletePwd(id){
+  try{var r=await fetch('/api/passwords/'+id,{method:'DELETE',headers:ah()});if(!r.ok){showToast('Error deleting.','err2');return;}
+  showToast('Password removed.','ok');loadPasswords();}
+  catch(e){showToast('Cannot reach server.','err2');}
+}
+async function clearAllPasswords(){
+  if(!confirm('Clear ALL passwords? This cannot be undone.'))return;
+  try{var r=await fetch('/api/passwords',{method:'DELETE',headers:ah()});if(!r.ok){showToast('Error','err2');return;}
+  showToast('All passwords cleared.','ok');loadPasswords();}
+  catch(e){showToast('Cannot reach server.','err2');}
+}
 
 /* KEYBOARD */
 document.getElementById('ssh-user').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('ssh-pass').focus();});
